@@ -1,0 +1,108 @@
+-- ----------------------------------------------------
+-- Ejercicio Individual: Clientes y Pedidos
+-- [Tu Nombre Aquí]
+-- ----------------------------------------------------
+
+-- 1. CREACIÓN DE TABLAS
+-- Se crea la tabla de clientes
+CREATE TABLE clientes (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(100) NOT NULL,
+    direccion VARCHAR(255),
+    telefono VARCHAR(20)
+);
+
+-- Se crea la tabla de pedidos
+-- Se incluye ON DELETE CASCADE para el requisito 7 (eliminar cliente y sus pedidos)
+CREATE TABLE pedidos (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    cliente_id INT,
+    fecha DATE,
+    total DECIMAL(10, 2),
+    FOREIGN KEY (cliente_id) REFERENCES clientes(id) ON DELETE CASCADE
+);
+
+-- ----------------------------------------------------
+-- 2. INSERCIÓN DE CLIENTES (5 clientes)
+INSERT INTO clientes (nombre, direccion, telefono) VALUES
+('Ana López', 'Calle Falsa 123', '555-1111'),
+('Bruno Díaz', 'Avenida Siempreviva 742', '555-2222'),
+('Carla Torres', 'Boulevard del Ocaso 45', '555-3333'),
+('Daniel Mora', 'Plaza Central 10', '555-4444'),
+('Elena Soto', 'Camino del Norte 88', '555-5555');
+
+-- ----------------------------------------------------
+-- 3. INSERCIÓN DE PEDIDOS (10 pedidos)
+-- Asignados a los clientes 1-5
+INSERT INTO pedidos (cliente_id, fecha, total) VALUES
+(1, '2025-10-01', 150.00), -- Pedido 1 (Ana)
+(2, '2025-10-02', 75.50),  -- Pedido 2 (Bruno)
+(1, '2025-10-03', 200.00), -- Pedido 3 (Ana)
+(3, '2025-10-03', 50.00),  -- Pedido 4 (Carla)
+(4, '2025-10-04', 300.00), -- Pedido 5 (Daniel)
+(1, '2025-10-05', 40.00),  -- Pedido 6 (Ana)
+(2, '2025-10-06', 120.00), -- Pedido 7 (Bruno)
+(5, '2025-10-07', 80.00),  -- Pedido 8 (Elena)
+(3, '2025-10-07', 110.00), -- Pedido 9 (Carla)
+(5, '2025-10-08', 95.00);  -- Pedido 10 (Elena)
+
+-- ----------------------------------------------------
+-- REQUERIMIENTOS DE CONSULTAS
+-- ----------------------------------------------------
+
+-- 4. Proyecta todos los clientes y sus respectivos pedidos.
+-- (Se usa LEFT JOIN para incluir clientes aunque no tuvieran pedidos)
+SELECT 
+    C.nombre AS nombre_cliente,
+    C.direccion,
+    P.id AS id_pedido,
+    P.fecha,
+    P.total
+FROM clientes C
+LEFT JOIN pedidos P ON C.id = P.cliente_id;
+
+-- ----------------------------------------------------
+-- 5. Proyecta todos los pedidos realizados por un cliente específico (ej. cliente_id = 1, Ana López).
+SELECT * FROM pedidos 
+WHERE cliente_id = 1;
+
+-- ----------------------------------------------------
+-- 6. Calcula el total de todos los pedidos para cada cliente.
+SELECT 
+    C.nombre,
+    SUM(P.total) AS total_gastado_por_cliente
+FROM clientes C
+JOIN pedidos P ON C.id = P.cliente_id
+GROUP BY C.id, C.nombre;
+
+-- ----------------------------------------------------
+-- 7. Actualiza la dirección de un cliente dado su "id" (ej. cliente_id = 4, Daniel Mora).
+UPDATE clientes
+SET direccion = 'Avenida Corrientes 1000'
+WHERE id = 4;
+
+-- (Comprobación opcional de que el cambio se hizo)
+-- SELECT * FROM clientes WHERE id = 4;
+
+-- ----------------------------------------------------
+-- 8. Elimina un cliente específico (ej. cliente_id = 2, Bruno Díaz) y todos sus pedidos asociados.
+-- Gracias a "ON DELETE CASCADE", solo necesitamos eliminar al cliente.
+DELETE FROM clientes 
+WHERE id = 2;
+
+-- (Comprobación opcional de que el cliente y sus pedidos ya no existen)
+-- SELECT * FROM clientes WHERE id = 2;
+-- SELECT * FROM pedidos WHERE cliente_id = 2;
+
+-- ----------------------------------------------------
+-- 9. Proyecta los tres clientes que han realizado más pedidos.
+SELECT 
+    C.nombre,
+    COUNT(P.id) AS numero_de_pedidos
+FROM clientes C
+JOIN pedidos P ON C.id = P.cliente_id
+GROUP BY C.id, C.nombre
+ORDER BY numero_de_pedidos DESC
+LIMIT 3;
+
+-- ----------------------------------------------------
